@@ -2,6 +2,7 @@ require (
 	github.com/aws/aws-lambda-go v1.36.1
 	github.com/aws/aws-sdk-go v1.54.20
 	github.com/aws/aws-sdk-go-v2/config v1.27.32
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.34.9
 	github.com/aws/aws-sdk-go-v2/service/sns v1.31.6
 	github.com/disintegration/imaging v1.6.2
 )

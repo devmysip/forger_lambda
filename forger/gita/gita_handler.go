@@ -62,6 +62,10 @@ func GitaHandler(request events.APIGatewayProxyRequest) events.APIGatewayProxyRe
 		return api.GetActiveUserInTime(request)
 	}
 
+	if strings.Contains(request.Path, "/gita/updateNotificationReadCounter") {
+		return api.UpdateNotificationReadCounter(request)
+	}
+
 	return events.APIGatewayProxyResponse{
 		Body:       "No Gita Path Found",
 		StatusCode: http.StatusInternalServerError,
