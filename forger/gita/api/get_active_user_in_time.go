@@ -37,7 +37,7 @@ func GetActiveUserInTime(request events.APIGatewayProxyRequest) events.APIGatewa
 	for i := 0; i < daysBack; i++ {
 
 		startMinute := 0
-		endMinute := 59
+		endMinute := 30
 		if now.Minute() > 30 {
 			startMinute = 31
 			endMinute = 59
@@ -47,8 +47,8 @@ func GetActiveUserInTime(request events.APIGatewayProxyRequest) events.APIGatewa
 		endDate := time.Date(now.Year(), now.Month(), now.Day()-i, now.Hour(), endMinute, 0, 0, istLocation)
 		startDate := time.Date(now.Year(), now.Month(), now.Day()-i, now.Hour(), startMinute, 0, 0, istLocation)
 
-		specificStartTime := startDate.Format("2006-01-02T15:04:05Z07:00")
-		specificEndTime := endDate.Format("2006-01-02T15:04:05Z07:00")
+		specificStartTime := startDate.In(istLocation).Format("2006-01-02T15:04:05Z07:00")
+		specificEndTime := endDate.In(istLocation).Format("2006-01-02T15:04:05Z07:00")
 
 		// Dynamically create placeholders like :start_date_1, :end_date_1
 		startPlaceholder := fmt.Sprintf(":start_date_%d", i+1)
@@ -74,7 +74,7 @@ func GetActiveUserInTime(request events.APIGatewayProxyRequest) events.APIGatewa
 		TableName:                 aws.String("User"),
 		FilterExpression:          aws.String(filterExpression),
 		ExpressionAttributeValues: expressionAttributeValues,
-		ProjectionExpression:      aws.String("email, fcm_token, updated_at, display_name"),
+		ProjectionExpression:      aws.String("email, client_endpoint, updated_at, display_name"),
 	}
 
 	// Perform the scan operation
