@@ -12,6 +12,7 @@ import (
 
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
+	// fmt.Println(request)
 	if strings.Contains(request.Path, "/gita") {
 		return gita.GitaHandler(request), nil
 	}

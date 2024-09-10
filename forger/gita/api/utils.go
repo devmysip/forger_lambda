@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 )
@@ -87,4 +88,16 @@ func decodeAndUnmarshal[T any](request events.APIGatewayProxyRequest) (T, error)
 	}
 
 	return targetStruct, nil
+}
+
+func getCurrentTime() string {
+	location, err := time.LoadLocation("Asia/Kolkata")
+	if err != nil {
+		return time.Now().Format(time.RFC3339)
+	}
+	currentTime := time.Now().In(location)
+	userUpdatedAt := currentTime.Format(time.RFC3339)
+
+	return userUpdatedAt
+
 }

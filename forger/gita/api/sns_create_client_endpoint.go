@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"forger/db"
 	"log"
-	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -71,7 +70,7 @@ func SNSCreateClientEndpoint(request events.APIGatewayProxyRequest) events.APIGa
 				S: aws.String(*resp.EndpointArn),
 			},
 			":updated_at": {
-				S: aws.String(time.Now().Format(time.RFC3339)),
+				S: aws.String(getCurrentTime()),
 			},
 		},
 		TableName:        aws.String("User"),
