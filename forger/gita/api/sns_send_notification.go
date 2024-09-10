@@ -43,7 +43,7 @@ func SNSSendNotification(request events.APIGatewayProxyRequest) events.APIGatewa
 
 	message := `{
 
-  "GCM": "{\"notification\":{\"title\":\"Hello\",\"body\":\"World\"},\"data\":{\"route\":\"/chaptersDetail\",\"arguments\":{\"chapter_no\":1,\"verse_no\":1}}}",
+  "GCM": "{\"notification\":{\"title\":\"Hello\",\"body\":\"World\"},\"data\":{\"screen\":\"/chaptersDetail\",\"arguments\":{\"chapter_no\":1,\"verse_no\":1}}}",
 		"APNS": "{\"aps\": {\"alert\": \"%s\", \"sound\": \"default\"}}"
 	}`
 	// message, err := CreateDynamicMessage("Notificatuion", "Hii", "Read", "{\"notification\": {\"title\": \"Notification Title\", \"body\": \"kjwhfkjqwgjk\"}}")

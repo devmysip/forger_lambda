@@ -17,6 +17,7 @@ func GetUser(request events.APIGatewayProxyRequest, svc *dynamodb.DynamoDB) even
 		log.Printf("Error scanning DynamoDB table: %s", err)
 		return responseBuilder(0, nil, "Internal Server Error", "un authorised user")
 	}
+
 	query := &dynamodb.QueryInput{
 		TableName:              aws.String("User"),
 		KeyConditionExpression: aws.String("email = :email"),

@@ -68,6 +68,11 @@ Resources:
           Properties:
             Path: /gita/getUserWeekActivity
             Method: POST
+        GetActiveUser:
+          Type: Api
+          Properties:
+            Path: /gita/getActiveUserInTime
+            Method: GET
         SNSCreate:
           Type: Api
           Properties:
