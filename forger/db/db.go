@@ -13,6 +13,7 @@ func init() {
 	var err error
 	dbSess, err = session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
+
 			Region: aws.String("ap-south-1"),
 		},
 

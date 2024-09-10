@@ -2,6 +2,7 @@ package api
 
 import (
 	"forger/db"
+	"forger/gita/models"
 	"log"
 	"time"
 
@@ -10,15 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
-
-type UserActivity struct {
-	Date     string `json:"date"`
-	Day      string `json:"day,omitempty"`
-	Activity []struct {
-		ChapterNo string `json:"chapter_no"`
-		VerseNo   string `json:"verse_no"`
-	} `json:"activity"`
-}
 
 func GetUserWeekActivity(request events.APIGatewayProxyRequest) events.APIGatewayProxyResponse {
 
@@ -62,7 +54,7 @@ func GetUserWeekActivity(request events.APIGatewayProxyRequest) events.APIGatewa
 		return responseBuilder(0, nil, "Internal Server Error", err.Error())
 	}
 
-	var userActivities []UserActivity
+	var userActivities []models.UserActivity
 	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &userActivities)
 	if err != nil {
 		log.Printf("Error unmarshalling result items: %s", err)
@@ -79,27 +71,27 @@ func GetUserWeekActivity(request events.APIGatewayProxyRequest) events.APIGatewa
 		activityMap[activity.Date] = activity.Activity
 	}
 
-	weekActivity := make([]UserActivity, 7)
+	weekActivity := make([]models.UserActivity, 7)
 	today := time.Now().Format("2006-01-02")
 	daysOfWeek := []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
 	for i := 0; i < 7; i++ {
 		date := startOfWeek.AddDate(0, 0, i).Format("2006-01-02")
 		day := daysOfWeek[i]
 		if date > today {
-			weekActivity[i] = UserActivity{
+			weekActivity[i] = models.UserActivity{
 				Date:     date,
 				Day:      day,
 				Activity: nil,
 			}
 		} else if activities, found := activityMap[date]; found {
 
-			weekActivity[i] = UserActivity{
+			weekActivity[i] = models.UserActivity{
 				Date:     date,
 				Day:      day,
 				Activity: activities,
 			}
 		} else {
-			weekActivity[i] = UserActivity{
+			weekActivity[i] = models.UserActivity{
 				Date: date,
 				Day:  day,
 				Activity: []struct {

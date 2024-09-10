@@ -93,3 +93,8 @@ Resources:
           Properties:
             Path: /gita/updateNotificationReadCounter
             Method: GET
+        UpdateDailyAnalytics:
+          Type: Api
+          Properties:
+            Path: /gita/updateDailyAnalytics
+            Method: GET
