@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"forger/db"
 	"forger/gita/models"
+	"forger/gita/utilis"
+	"log"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -74,7 +77,7 @@ func GetActiveUserInTime(request events.APIGatewayProxyRequest) events.APIGatewa
 		TableName:                 aws.String("User"),
 		FilterExpression:          aws.String(filterExpression),
 		ExpressionAttributeValues: expressionAttributeValues,
-		ProjectionExpression:      aws.String("email, client_endpoint, updated_at, display_name"),
+		ProjectionExpression:      aws.String("email, client_endpoint, updated_at, display_name, last_read"),
 	}
 
 	// Perform the scan operation
@@ -92,8 +95,45 @@ func GetActiveUserInTime(request events.APIGatewayProxyRequest) events.APIGatewa
 		return responseBuilder(0, users, "Failed", "")
 
 	}
+	for _, user := range users {
+		if user.ClientEndpoint == nil {
+			continue
+		}
 
-	// Return the response
+		message := ""
+		if user.LastRead != nil {
+			lastRead := *user.LastRead
+			trimmed := strings.TrimPrefix(lastRead, "BG")
+			parts := strings.Split(trimmed, ".")
+
+			if len(parts) != 2 {
+				continue
+			}
+
+			chapterNo := parts[0]
+			verseNo := parts[1]
+
+			data := map[string]interface{}{
+				"screen": "/chaptersDetail",
+				"arguments": map[string]interface{}{
+					"chapter_no": chapterNo,
+					"verse_no":   verseNo,
+				},
+			}
+
+			message, err = createMessage("Hello", "World", data)
+			if err != nil {
+				log.Printf("Failed to create message: %v", err)
+				continue
+			}
+		}
+
+		err := utilis.SendNotification(*user.ClientEndpoint, message)
+		if err != nil {
+			log.Printf("Failed to send SNS push notification: %v", err)
+		}
+	}
+
 	return responseBuilder(1, users, "success", "")
 
 }
