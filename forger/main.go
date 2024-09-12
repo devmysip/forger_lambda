@@ -3,6 +3,7 @@ package main
 import (
 	"forger/gita"
 	"forger/imager"
+	"log"
 	"net/http"
 	"strings"
 
@@ -12,6 +13,7 @@ import (
 
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
+	log.Print(request)
 	if strings.Contains(request.Path, "/gita") {
 		return gita.GitaHandler(request), nil
 	}

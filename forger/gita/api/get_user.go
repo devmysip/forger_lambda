@@ -47,5 +47,13 @@ func GetUser(request events.APIGatewayProxyRequest, svc *dynamodb.DynamoDB) even
 		return responseBuilder(0, nil, "Internal Server Error", "Failed to parse chapter data: Unmarshal error")
 	}
 
+	user.Update = models.AppUpdate{
+		BuildNo:     7,
+		ForceUpdate: 1,
+		SoftUpdate:  0,
+		Title:       "Update",
+		Message:     "Update the app to enhance user experience",
+	}
+
 	return responseBuilder(1, user, "Success", "")
 }

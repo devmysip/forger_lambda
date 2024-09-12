@@ -33,8 +33,8 @@ func SNSSendNotification(request events.APIGatewayProxyRequest) events.APIGatewa
 			"verse_no":   1,
 		},
 	}
-
-	message, err := createMessage("Hello", "World", data)
+	notificationTemplates := utilis.GetNotificationTemplates()
+	message, err := createMessage(notificationTemplates[0].Title, notificationTemplates[0].Body, data)
 	if err != nil {
 		log.Printf("Failed to send SNS push notification: %v", err)
 		return responseBuilder(0, nil, "Failed to send SNS push notification", err.Error())

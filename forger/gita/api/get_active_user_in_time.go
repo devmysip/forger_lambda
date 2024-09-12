@@ -6,6 +6,7 @@ import (
 	"forger/gita/models"
 	"forger/gita/utilis"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -99,6 +100,8 @@ func GetActiveUserInTime(request events.APIGatewayProxyRequest) events.APIGatewa
 	notificationTemplates := utilis.GetNotificationTemplates()
 	log.Printf("Failed to send SNS push notification: %v", err)
 
+	// return responseBuilder(1, expressionAttributeValues, "success", "")
+
 	for _, user := range users {
 		if user.ClientEndpoint == nil {
 			continue
@@ -109,7 +112,6 @@ func GetActiveUserInTime(request events.APIGatewayProxyRequest) events.APIGatewa
 		if err != nil {
 			log.Printf("Failed to calculate days: %v", err)
 
-			continue
 		}
 
 		// Get the appropriate notification template
@@ -128,8 +130,17 @@ func GetActiveUserInTime(request events.APIGatewayProxyRequest) events.APIGatewa
 				continue
 			}
 
-			chapterNo := parts[0]
-			verseNo := parts[1]
+			chapterNo, err := strconv.Atoi(parts[0])
+			if err != nil {
+				log.Println("Error converting chapter number:", err)
+				continue
+			}
+
+			verseNo, err := strconv.Atoi(parts[1])
+			if err != nil {
+				log.Println("Error converting verse number:", err)
+				continue
+			}
 
 			data = map[string]interface{}{
 				"screen": "/chaptersDetail",
@@ -145,7 +156,6 @@ func GetActiveUserInTime(request events.APIGatewayProxyRequest) events.APIGatewa
 			log.Printf("Failed to create message: %v", err)
 			continue
 		}
-
 		// Send the notification
 		err = utilis.SendNotification(*user.ClientEndpoint, message)
 		if err != nil {
@@ -159,7 +169,7 @@ func GetActiveUserInTime(request events.APIGatewayProxyRequest) events.APIGatewa
 }
 
 func daysBetween(updatedAt string) (int, error) {
-	const layout = "2006-01-02T15:04:05Z"
+	const layout = "2006-01-02T15:04:05Z07:00"
 	// Parse `updated_at` string into time.Time
 	updatedTime, err := time.Parse(layout, updatedAt)
 	if err != nil {
