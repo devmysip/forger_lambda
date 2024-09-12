@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"forger/db"
 	"forger/gita/models"
+	"forger/gita/utilis"
+	"log"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -74,7 +77,7 @@ func GetActiveUserInTime(request events.APIGatewayProxyRequest) events.APIGatewa
 		TableName:                 aws.String("User"),
 		FilterExpression:          aws.String(filterExpression),
 		ExpressionAttributeValues: expressionAttributeValues,
-		ProjectionExpression:      aws.String("email, client_endpoint, updated_at, display_name"),
+		ProjectionExpression:      aws.String("email, client_endpoint, updated_at, display_name, last_read"),
 	}
 
 	// Perform the scan operation
@@ -93,7 +96,84 @@ func GetActiveUserInTime(request events.APIGatewayProxyRequest) events.APIGatewa
 
 	}
 
-	// Return the response
+	notificationTemplates := utilis.GetNotificationTemplates()
+	log.Printf("Failed to send SNS push notification: %v", err)
+
+	for _, user := range users {
+		if user.ClientEndpoint == nil {
+			continue
+		}
+
+		// Determine the number of days since the user's last update
+		days, err := daysBetween(user.UpdatedAt)
+		if err != nil {
+			log.Printf("Failed to calculate days: %v", err)
+
+			continue
+		}
+
+		// Get the appropriate notification template
+		notification := notificationTemplates[days]
+
+		var message string
+		var data map[string]interface{}
+
+		if user.LastRead != nil {
+			lastRead := *user.LastRead
+			trimmed := strings.TrimPrefix(lastRead, "BG")
+			parts := strings.Split(trimmed, ".")
+
+			if len(parts) != 2 {
+				log.Printf("Invalid LastRead format: %s", lastRead)
+				continue
+			}
+
+			chapterNo := parts[0]
+			verseNo := parts[1]
+
+			data = map[string]interface{}{
+				"screen": "/chaptersDetail",
+				"arguments": map[string]interface{}{
+					"chapter_no": chapterNo,
+					"verse_no":   verseNo,
+				},
+			}
+		}
+
+		message, err = createMessage(notification.Title, notification.Body, data)
+		if err != nil {
+			log.Printf("Failed to create message: %v", err)
+			continue
+		}
+
+		// Send the notification
+		err = utilis.SendNotification(*user.ClientEndpoint, message)
+		if err != nil {
+			log.Printf("Failed to send SNS push notification: %v", err)
+		}
+
+	}
+
 	return responseBuilder(1, users, "success", "")
 
+}
+
+func daysBetween(updatedAt string) (int, error) {
+	const layout = "2006-01-02T15:04:05Z"
+	// Parse `updated_at` string into time.Time
+	updatedTime, err := time.Parse(layout, updatedAt)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse `updated_at`: %v", err)
+	}
+
+	// Get today's date
+	today := time.Now()
+
+	// Calculate the difference between today and the `updated_at` date
+	duration := today.Sub(updatedTime)
+
+	// Convert duration to days
+	days := int(duration.Hours() / 24)
+
+	return days, nil
 }

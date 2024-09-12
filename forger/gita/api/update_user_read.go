@@ -66,10 +66,12 @@ func UpdateUserRead(request events.APIGatewayProxyRequest, svc *dynamodb.DynamoD
 			}
 
 			// Append the verse number if it does not exist
+
+			lastRead := fmt.Sprintf("BG%d.%d", updateRead.ChapterNo, updateRead.VerseNo)
 			if !verseExists {
 				user.Reads[i].Verses = append(user.Reads[i].Verses, updateRead.VerseNo)
 				sort.Ints(user.Reads[i].Verses)
-				user.LastRead = fmt.Sprintf("BG%d.%d", updateRead.ChapterNo, updateRead.VerseNo)
+				user.LastRead = &lastRead
 				user.Reads[i].Progress = len(user.Reads[i].Verses) * 100 / models.GitaChapters[i]
 			}
 			break

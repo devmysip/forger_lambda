@@ -12,7 +12,7 @@ type User struct {
 	ProfileURL     *string `json:"profile_url,omitempty"`
 	FCMToken       *string `json:"fcm_token,omitempty"`
 	ClientEndpoint *string `json:"client_endpoint,omitempty"`
-	LastRead       string  `json:"last_read"`
+	LastRead       *string `json:"last_read"`
 	Reads          []Read  `json:"reads"`
 	UpdatedAt      string  `json:"updated_at,omitempty"`
 	CreatedAt      string  `json:"created_at,omitempty"`
