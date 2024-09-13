@@ -102,6 +102,8 @@ func GetActiveUserInTime(request events.APIGatewayProxyRequest) events.APIGatewa
 
 	// return responseBuilder(1, expressionAttributeValues, "success", "")
 
+	notificationSent := 0
+
 	for _, user := range users {
 		if user.ClientEndpoint == nil {
 			continue
@@ -160,10 +162,13 @@ func GetActiveUserInTime(request events.APIGatewayProxyRequest) events.APIGatewa
 		err = utilis.SendNotification(*user.ClientEndpoint, message)
 		if err != nil {
 			log.Printf("Failed to send SNS push notification: %v", err)
+		} else {
+			notificationSent++
 		}
 
 	}
 
+	updateNotificationSent(svc, 1)
 	return responseBuilder(1, users, "success", "")
 
 }
@@ -186,4 +191,43 @@ func daysBetween(updatedAt string) (int, error) {
 	days := int(duration.Hours() / 24)
 
 	return days, nil
+}
+
+func updateNotificationSent(svc *dynamodb.DynamoDB, notificationSent int) error {
+	// Assuming the table name is 'analytics' and the primary key is 'date'
+	tableName := "Analytics"
+
+	// Calculate one day ago in the format YYYY-MM-DD
+	date := time.Now().Format("2006-01-02")
+
+	// Update expression to increment the notificationSent count
+	updateExpression := "SET notification_sent = if_not_exists(notification_sent, :zero) + :inc"
+
+	// Define the input for the UpdateItem API
+	input := &dynamodb.UpdateItemInput{
+		TableName: aws.String(tableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"date": {
+				S: aws.String(date),
+			},
+		},
+		UpdateExpression: aws.String(updateExpression),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":inc": {
+				N: aws.String(fmt.Sprintf("%d", notificationSent)),
+			},
+			":zero": {
+				N: aws.String("0"),
+			},
+		},
+		ReturnValues: aws.String("UPDATED_NEW"),
+	}
+
+	// Call UpdateItem
+	_, err := svc.UpdateItem(input)
+	if err != nil {
+		return fmt.Errorf("failed to update notificationSent count: %w", err)
+	}
+
+	return nil
 }
