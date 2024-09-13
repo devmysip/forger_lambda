@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"forger/db"
 	"log"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
@@ -43,6 +44,34 @@ func UpdateNotificationReadCounter(request events.APIGatewayProxyRequest) events
 	}
 
 	_, err = svc.UpdateItem(input)
+	if err != nil {
+		log.Printf("Error updating notification counter: %s", err)
+		return responseBuilder(0, nil, "Internal Server Error", "Failed to update notification counter")
+	}
+
+	date := time.Now().Format("2006-01-02")
+
+	// Define the input for the UpdateItem API
+	inputAnalytics := &dynamodb.UpdateItemInput{
+		TableName: aws.String("Analytics"),
+		Key: map[string]*dynamodb.AttributeValue{
+			"date": {
+				S: aws.String(date),
+			},
+		},
+		UpdateExpression: aws.String(updateExpression),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":incr": {
+				N: aws.String("1"),
+			},
+			":start": {
+				N: aws.String("0"),
+			},
+		},
+		ReturnValues: aws.String("UPDATED_NEW"),
+	}
+
+	_, err = svc.UpdateItem(inputAnalytics)
 	if err != nil {
 		log.Printf("Error updating notification counter: %s", err)
 		return responseBuilder(0, nil, "Internal Server Error", "Failed to update notification counter")
