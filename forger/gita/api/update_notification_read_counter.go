@@ -53,13 +53,11 @@ func UpdateNotificationReadCounter(request events.APIGatewayProxyRequest) events
 
 	// Define the input for the UpdateItem API
 	inputAnalytics := &dynamodb.UpdateItemInput{
-		TableName: aws.String("Analytics"),
 		Key: map[string]*dynamodb.AttributeValue{
 			"date": {
 				S: aws.String(date),
 			},
 		},
-		UpdateExpression: aws.String(updateExpression),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":incr": {
 				N: aws.String("1"),
@@ -69,6 +67,9 @@ func UpdateNotificationReadCounter(request events.APIGatewayProxyRequest) events
 			},
 		},
 		ReturnValues: aws.String("UPDATED_NEW"),
+		TableName: aws.String("Analytics"),
+		UpdateExpression: aws.String(updateExpression),
+
 	}
 
 	_, err = svc.UpdateItem(inputAnalytics)

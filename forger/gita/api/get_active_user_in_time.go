@@ -168,7 +168,7 @@ func GetActiveUserInTime(request events.APIGatewayProxyRequest) events.APIGatewa
 
 	}
 
-	updateNotificationSent(svc, 1)
+	updateNotificationSent(svc, notificationSent)
 	return responseBuilder(1, users, "success", "")
 
 }
