@@ -47,26 +47,37 @@ func UpdateDailyAnalytics(request events.APIGatewayProxyRequest) events.APIGatew
 	// Prepare data for DynamoDB PutItem
 	date := oneDayAgo.Format("2006-01-02")
 
-	putItemInput := &dynamodb.PutItemInput{
-		TableName: aws.String("Analytics"),
-		Item: map[string]*dynamodb.AttributeValue{
-			"date": {
-				S: aws.String(date),
-			},
-			"active_users": {
-				N: aws.String(fmt.Sprintf("%d", len(updatedUser))),
-			},
-			"new_users": {
-				N: aws.String(fmt.Sprintf("%d", len(newUser))),
-			},
-			"user_activity": {
-				N: aws.String(fmt.Sprintf("%d", len(activity))),
-			},
+	updateExpression := "SET active_users = :active_users, new_users = :new_users, user_activity = :user_activity"
+	expressionAttributeValues := map[string]*dynamodb.AttributeValue{
+		":active_users": {
+			N: aws.String(fmt.Sprintf("%d", len(updatedUser))),
+		},
+		":new_users": {
+			N: aws.String(fmt.Sprintf("%d", len(newUser))),
+		},
+		":user_activity": {
+			N: aws.String(fmt.Sprintf("%d", len(activity))),
 		},
 	}
 
-	// PutItem to DynamoDB
-	_, err = svc.PutItem(putItemInput)
+	updateItemInput := &dynamodb.UpdateItemInput{
+		TableName: aws.String("Analytics"),
+		Key: map[string]*dynamodb.AttributeValue{
+			"date": {
+				S: aws.String(date),
+			},
+		},
+		UpdateExpression:          aws.String(updateExpression),
+		ExpressionAttributeValues: expressionAttributeValues,
+	}
+
+	// Execute the update operation
+	_, err = svc.UpdateItem(updateItemInput)
+	if err != nil {
+		log.Printf("Failed to update item: %v", err)
+		return responseBuilder(0, nil, "Internal Server Error", "Failed to update analytics data")
+	}
+
 	if err != nil {
 		log.Printf("Failed to put item: %v", err)
 		return responseBuilder(0, nil, "Internal Server Error", "Failed to update analytics data")
