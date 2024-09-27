@@ -16,7 +16,7 @@ func GetUserWeekActivity(request events.APIGatewayProxyRequest) events.APIGatewa
 
 	svc := dynamodb.New(db.DB())
 
-	email, err := headerHandler(request.Headers)
+	email, err := headerHandler(request.Headers,)
 	if err != nil {
 		log.Printf("Error extracting email: %s", err)
 		return responseBuilder(0, nil, "Internal Server Error", "Failed to extract email from request")

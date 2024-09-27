@@ -33,6 +33,7 @@ func SNSSendNotification(request events.APIGatewayProxyRequest) events.APIGatewa
 			"verse_no":   1,
 		},
 	}
+
 	notificationTemplates := utilis.GetNotificationTemplates()
 	message, err := createMessage(notificationTemplates[0].Title, notificationTemplates[0].Body, data)
 	if err != nil {

@@ -78,11 +78,6 @@ func UpdateDailyAnalytics(request events.APIGatewayProxyRequest) events.APIGatew
 		return responseBuilder(0, nil, "Internal Server Error", "Failed to update analytics data")
 	}
 
-	if err != nil {
-		log.Printf("Failed to put item: %v", err)
-		return responseBuilder(0, nil, "Internal Server Error", "Failed to update analytics data")
-	}
-
 	return responseBuilder(1, map[string]interface{}{
 		"active_users":  len(updatedUser),
 		"new_users":     len(newUser),

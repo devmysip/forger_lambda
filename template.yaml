@@ -99,3 +99,13 @@ Resources:
           Properties:
             Path: /gita/updateDailyAnalytics
             Method: GET
+        GetActiveUserInDays:
+          Type: Api
+          Properties:
+            Path: /gita/getActiveUserInDays
+            Method: POST
+        SendDailyNotification:
+          Type: Api
+          Properties:
+            Path: /gita/sendDailyNotification
+            Method: GET
