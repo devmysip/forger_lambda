@@ -7,16 +7,16 @@ type Read struct {
 }
 
 type User struct {
-	Email          string    `json:"email"`
-	DisplayName    *string   `json:"display_name,omitempty"`
-	ProfileURL     *string   `json:"profile_url,omitempty"`
-	FCMToken       *string   `json:"fcm_token,omitempty"`
-	ClientEndpoint *string   `json:"client_endpoint,omitempty"`
-	LastRead       *string   `json:"last_read"`
-	Reads          []Read    `json:"reads"`
-	UpdatedAt      string    `json:"updated_at,omitempty"`
-	CreatedAt      string    `json:"created_at,omitempty"`
-	Update         AppUpdate `json:"app_update,omitempty"`
+	Email          string     `json:"email"`
+	DisplayName    *string    `json:"display_name,omitempty"`
+	ProfileURL     *string    `json:"profile_url,omitempty"`
+	FCMToken       *string    `json:"fcm_token,omitempty"`
+	ClientEndpoint *string    `json:"client_endpoint,omitempty"`
+	LastRead       *string    `json:"last_read"`
+	Reads          []Read     `json:"reads"`
+	UpdatedAt      string     `json:"updated_at,omitempty"`
+	CreatedAt      string     `json:"created_at,omitempty"`
+	Update         *AppUpdate `json:"app_update,omitempty"`
 }
 
 type UpdateRead struct {

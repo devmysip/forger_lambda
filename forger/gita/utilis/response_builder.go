@@ -2,6 +2,7 @@ package utilis
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -16,6 +17,9 @@ func ResponseBuilder(status int, result interface{}, message, errorMessage strin
 
 	if status == 0 {
 		response["error_message"] = errorMessage
+		log.Printf("Error: %s", errorMessage)
+	} else {
+		log.Printf("Success: %s", message)
 	}
 
 	responseBody, err := json.Marshal(response)

@@ -1,6 +1,8 @@
 package utilis
 
-import "time"
+import (
+	"time"
+)
 
 func GetCurrentTime() string {
 	location, err := time.LoadLocation("Asia/Kolkata")
@@ -12,4 +14,14 @@ func GetCurrentTime() string {
 
 	return userUpdatedAt
 
+}
+
+func GetLocalTime() time.Time {
+	istLocation, err := time.LoadLocation("Asia/Kolkata")
+	if err != nil {
+		return time.Now()
+	}
+
+	now := time.Now().In(istLocation)
+	return now
 }

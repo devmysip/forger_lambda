@@ -4,7 +4,7 @@ import (
 	"forger/db"
 	"forger/gita/api"
 	snsservice "forger/gita/sns_service"
-	userwatch "forger/gita/user_watch"
+	userengagement "forger/gita/user_engagement"
 	"net/http"
 	"strings"
 
@@ -13,9 +13,9 @@ import (
 )
 
 func GitaHandler(request events.APIGatewayProxyRequest) events.APIGatewayProxyResponse {
-
 	svc := dynamodb.New(db.DB())
 
+	// API handlers
 	if strings.Contains(request.Path, "/gita/createUser") {
 		return api.CreateUser(request, svc)
 	}
@@ -24,16 +24,8 @@ func GitaHandler(request events.APIGatewayProxyRequest) events.APIGatewayProxyRe
 		return api.GetUser(request, svc)
 	}
 
-	if strings.Contains(request.Path, "/gita/updateRead") {
-		return userwatch.UpdateUserRead(request, svc)
-	}
-
 	if strings.Contains(request.Path, "/gita/updateFCM") {
 		return api.UpdateFCMToken(request, svc)
-	}
-
-	if strings.Contains(request.Path, "/gita/updateUserActivity") {
-		return userwatch.UpdateUserActivity(request)
 	}
 
 	if strings.Contains(request.Path, "/gita/getUserWeekActivity") {
@@ -48,6 +40,36 @@ func GitaHandler(request events.APIGatewayProxyRequest) events.APIGatewayProxyRe
 		return api.GetVerse(request)
 	}
 
+	if strings.Contains(request.Path, "/gita/sendDailyNotification") {
+		return api.SendDailyNotification(request)
+	}
+
+	// User watch handlers
+	if strings.Contains(request.Path, "/gita/updateRead") {
+		return userengagement.UpdateUserRead(request, svc)
+	}
+
+	if strings.Contains(request.Path, "/gita/updateUserActivity") {
+		return userengagement.UpdateUserActivity(request)
+	}
+
+	if strings.Contains(request.Path, "/gita/updateNotificationReadCounter") {
+		return userengagement.UpdateNotificationReadCounter(request)
+	}
+
+	if strings.Contains(request.Path, "/gita/updateDailyAnalytics") {
+		return userengagement.UpdateDailyAnalytics(request)
+	}
+
+	if strings.Contains(request.Path, "/gita/getActiveUserInDays") {
+		return userengagement.GetActiveUserInDays(request)
+	}
+
+	if strings.Contains(request.Path, "/gita/getActiveUserInTime") {
+		return api.GetActiveUserInTime(request)
+	}
+
+	// SNS service handlers
 	if strings.Contains(request.Path, "/gita/snsCreate") {
 		return snsservice.SNSCreateClientEndpoint(request)
 	}
@@ -60,26 +82,7 @@ func GitaHandler(request events.APIGatewayProxyRequest) events.APIGatewayProxyRe
 		return snsservice.SNSSendNotification(request)
 	}
 
-	if strings.Contains(request.Path, "/gita/getActiveUserInTime") {
-		return api.GetActiveUserInTime(request)
-	}
-
-	if strings.Contains(request.Path, "/gita/updateNotificationReadCounter") {
-		return userwatch.UpdateNotificationReadCounter(request)
-	}
-
-	if strings.Contains(request.Path, "/gita/updateDailyAnalytics") {
-		return userwatch.UpdateDailyAnalytics(request)
-	}
-
-	if strings.Contains(request.Path, "/gita/getActiveUserInDays") {
-		return api.GetActiveUserInDays(request)
-	}
-
-	if strings.Contains(request.Path, "/gita/sendDailyNotification") {
-		return api.SendDailyNotification(request)
-	}
-
+	// Default response for unmatched paths
 	return events.APIGatewayProxyResponse{
 		Body:       "No Gita Path Found",
 		StatusCode: http.StatusInternalServerError,
