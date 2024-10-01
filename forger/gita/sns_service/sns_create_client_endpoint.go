@@ -1,9 +1,10 @@
-package api
+package snsservice
 
 import (
 	"context"
 	"fmt"
 	"forger/db"
+	"forger/gita/utilis"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -21,24 +22,24 @@ func SNSCreateClientEndpoint(request events.APIGatewayProxyRequest) events.APIGa
 		FCMToken string `json:"fcm_token"`
 	}
 
-	email, err := headerHandler(request.Headers)
+	email, err := utilis.HeaderHandler(request.Headers)
 	if err != nil {
 		log.Printf("Error extracting email: %s", email)
 
-		return responseBuilder(0, nil, "Unauthorised User", err.Error())
+		return utilis.ResponseBuilder(0, nil, "Unauthorised User", err.Error())
 	}
 
-	body, err := decodeAndUnmarshal[RequestBody](request)
+	body, err := utilis.DecodeAndUnmarshal[RequestBody](request)
 	if err != nil {
 		log.Printf("Error decoding and unmarshalling request body: %s", err)
-		return responseBuilder(0, nil, "Failed to parse request body", err.Error())
+		return utilis.ResponseBuilder(0, nil, "Failed to parse request body", err.Error())
 	}
 
 	sdkConfig, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		fmt.Println("Couldn't load default configuration. Have you set up your AWS account?")
 		fmt.Println(err)
-		return responseBuilder(0, nil, "Bad Request", err.Error())
+		return utilis.ResponseBuilder(0, nil, "Bad Request", err.Error())
 
 	}
 	snsClient := sns.NewFromConfig(sdkConfig)
@@ -51,7 +52,7 @@ func SNSCreateClientEndpoint(request events.APIGatewayProxyRequest) events.APIGa
 	resp, err := snsClient.CreatePlatformEndpoint(context.TODO(), input)
 	if err != nil {
 		log.Printf("Error: %v", err)
-		return responseBuilder(0, nil, "Bad Request", err.Error())
+		return utilis.ResponseBuilder(0, nil, "Bad Request", err.Error())
 	}
 
 	svc := dynamodb.New(db.DB())
@@ -70,7 +71,7 @@ func SNSCreateClientEndpoint(request events.APIGatewayProxyRequest) events.APIGa
 				S: aws.String(*resp.EndpointArn),
 			},
 			":updated_at": {
-				S: aws.String(getCurrentTime()),
+				S: aws.String(utilis.GetCurrentTime()),
 			},
 		},
 		TableName:        aws.String("User"),
@@ -81,10 +82,10 @@ func SNSCreateClientEndpoint(request events.APIGatewayProxyRequest) events.APIGa
 	_, err = svc.UpdateItem(query)
 	if err != nil {
 		log.Printf("Error updating FCM token: %s", err)
-		return responseBuilder(0, nil, "Internal Server Error", err.Error())
+		return utilis.ResponseBuilder(0, nil, "Internal Server Error", err.Error())
 	}
 
 	fmt.Println("The ARN of the endpoint is", *resp.EndpointArn)
-	return responseBuilder(1, *resp.EndpointArn, "Success", "")
+	return utilis.ResponseBuilder(1, *resp.EndpointArn, "Success", "")
 
 }

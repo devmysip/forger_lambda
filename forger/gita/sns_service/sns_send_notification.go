@@ -1,4 +1,4 @@
-package api
+package snsservice
 
 import (
 	"forger/gita/utilis"
@@ -13,17 +13,17 @@ func SNSSendNotification(request events.APIGatewayProxyRequest) events.APIGatewa
 		ClientEndpoint string `json:"client_endpoint"`
 	}
 
-	email, err := headerHandler(request.Headers)
+	email, err := utilis.HeaderHandler(request.Headers)
 	if err != nil {
 		log.Printf("Error extracting email: %s", email)
 
-		return responseBuilder(0, nil, "Unauthorised User", err.Error())
+		return utilis.ResponseBuilder(0, nil, "Unauthorised User", err.Error())
 	}
 
-	body, err := decodeAndUnmarshal[RequestBody](request)
+	body, err := utilis.DecodeAndUnmarshal[RequestBody](request)
 	if err != nil {
 		log.Printf("Error decoding and unmarshalling request body: %s", err)
-		return responseBuilder(0, nil, "Failed to parse request body", err.Error())
+		return utilis.ResponseBuilder(0, nil, "Failed to parse request body", err.Error())
 	}
 
 	data := map[string]interface{}{
@@ -35,17 +35,17 @@ func SNSSendNotification(request events.APIGatewayProxyRequest) events.APIGatewa
 	}
 
 	notificationTemplates := utilis.GetNotificationTemplates()
-	message, err := createMessage(notificationTemplates[0].Title, notificationTemplates[0].Body, data)
+	message, err := utilis.FCMPayloadBuilder(notificationTemplates[0].Title, notificationTemplates[0].Body, data)
 	if err != nil {
 		log.Printf("Failed to send SNS push notification: %v", err)
-		return responseBuilder(0, nil, "Failed to send SNS push notification", err.Error())
+		return utilis.ResponseBuilder(0, nil, "Failed to send SNS push notification", err.Error())
 	}
 
 	err = utilis.SendNotification(body.ClientEndpoint, message)
 	if err != nil {
 		log.Printf("Failed to send SNS push notification: %v", err)
-		return responseBuilder(0, nil, "Failed to send SNS push notification", err.Error())
+		return utilis.ResponseBuilder(0, nil, "Failed to send SNS push notification", err.Error())
 	}
 
-	return responseBuilder(1, message, "success", "")
+	return utilis.ResponseBuilder(1, message, "success", "")
 }

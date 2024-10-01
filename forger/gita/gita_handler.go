@@ -3,6 +3,7 @@ package gita
 import (
 	"forger/db"
 	"forger/gita/api"
+	snsservice "forger/gita/sns_service"
 	"net/http"
 	"strings"
 
@@ -47,15 +48,15 @@ func GitaHandler(request events.APIGatewayProxyRequest) events.APIGatewayProxyRe
 	}
 
 	if strings.Contains(request.Path, "/gita/snsCreate") {
-		return api.SNSCreateClientEndpoint(request)
+		return snsservice.SNSCreateClientEndpoint(request)
 	}
 
 	if strings.Contains(request.Path, "/gita/snsUpdate") {
-		return api.SNSUpdateClientEndpoint(request)
+		return snsservice.SNSUpdateClientEndpoint(request)
 	}
 
 	if strings.Contains(request.Path, "/gita/snsSendNotification") {
-		return api.SNSSendNotification(request)
+		return snsservice.SNSSendNotification(request)
 	}
 
 	if strings.Contains(request.Path, "/gita/getActiveUserInTime") {

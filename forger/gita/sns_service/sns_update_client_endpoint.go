@@ -1,9 +1,10 @@
-package api
+package snsservice
 
 import (
 	"context"
 	"fmt"
 	"forger/db"
+	"forger/gita/utilis"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -20,24 +21,24 @@ func SNSUpdateClientEndpoint(request events.APIGatewayProxyRequest) events.APIGa
 		EnpointARN string `json:"client_endpoint"`
 	}
 
-	email, err := headerHandler(request.Headers)
+	email, err := utilis.HeaderHandler(request.Headers)
 	if err != nil {
 		log.Printf("Error extracting email: %s", email)
 
-		return responseBuilder(0, nil, "Internal Server Error", "Failed to extract email from request")
+		return utilis.ResponseBuilder(0, nil, "Internal Server Error", "Failed to extract email from request")
 	}
 
-	body, err := decodeAndUnmarshal[RequestBody](request)
+	body, err := utilis.DecodeAndUnmarshal[RequestBody](request)
 	if err != nil {
 		log.Printf("Error decoding and unmarshalling request body: %s", err)
-		return responseBuilder(0, nil, "Bad Request", "Failed to parse request body")
+		return utilis.ResponseBuilder(0, nil, "Bad Request", "Failed to parse request body")
 	}
 
 	sdkConfig, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		fmt.Println("Couldn't load default configuration. Have you set up your AWS account?")
 		fmt.Println(err)
-		return responseBuilder(0, nil, "Bad Request", "Failed to parse request body")
+		return utilis.ResponseBuilder(0, nil, "Bad Request", "Failed to parse request body")
 
 	}
 	snsClient := sns.NewFromConfig(sdkConfig)
@@ -55,7 +56,7 @@ func SNSUpdateClientEndpoint(request events.APIGatewayProxyRequest) events.APIGa
 	_, err = snsClient.SetEndpointAttributes(context.TODO(), input)
 	if err != nil {
 		log.Printf("Error updating endpoint: %v", err)
-		return responseBuilder(0, nil, "Bad Request", err.Error())
+		return utilis.ResponseBuilder(0, nil, "Bad Request", err.Error())
 
 	}
 	svc := dynamodb.New(db.DB())
@@ -71,7 +72,7 @@ func SNSUpdateClientEndpoint(request events.APIGatewayProxyRequest) events.APIGa
 				S: aws.String(body.FCMToken),
 			},
 			":updated_at": {
-				S: aws.String(getCurrentTime()),
+				S: aws.String(utilis.GetCurrentTime()),
 			},
 		},
 		TableName:        aws.String("User"),
@@ -81,10 +82,10 @@ func SNSUpdateClientEndpoint(request events.APIGatewayProxyRequest) events.APIGa
 	_, err = svc.UpdateItem(query)
 	if err != nil {
 		log.Printf("Error updating FCM token: %s", err)
-		return responseBuilder(0, nil, "Internal Server Error", "Failed to update FCM token")
+		return utilis.ResponseBuilder(0, nil, "Internal Server Error", "Failed to update FCM token")
 	}
 
 	fmt.Println("Successfully updated the endpoint")
-	return responseBuilder(1, nil, "Endpoint updated successfully", "")
+	return utilis.ResponseBuilder(1, nil, "Endpoint updated successfully", "")
 
 }
