@@ -22,7 +22,7 @@ func SendDailyNotification(request events.APIGatewayProxyRequest) events.APIGate
 	now := utilis.GetLocalTime()
 
 	bucket := constants.GitaSarathiBucket
-	objectKey := fmt.Sprintf("%s.json", now.Format("2006-01-02"))
+	objectKey := fmt.Sprintf("%s/%s.json", constants.DailyNotifictionUserBucketDirectory, now.Format("2006-01-02"))
 
 	users, err := s3services.DownloadFileFromS3[[]models.User](bucket, objectKey)
 	if err != nil {

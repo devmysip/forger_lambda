@@ -63,6 +63,7 @@ func GitaHandler(request events.APIGatewayProxyRequest) events.APIGatewayProxyRe
 
 	if strings.Contains(request.Path, "/gita/getActiveUserInDays") {
 		return userengagement.GetActiveUserInDays(request)
+
 	}
 
 	if strings.Contains(request.Path, "/gita/getActiveUserInTime") {
