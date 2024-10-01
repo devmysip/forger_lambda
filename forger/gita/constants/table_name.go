@@ -6,7 +6,6 @@ const UserActivityTable = "UserActivity"
 const VersesTable = "Verses"
 const ChapterTable = "ChaptersTable"
 
-// const UserTable = "User"
+const AnalyticsTable = "Analytics"
+
 // const VersesTable = "Verses"
-
-

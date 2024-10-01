@@ -20,7 +20,6 @@ func UpdateDailyAnalytics(request events.APIGatewayProxyRequest) events.APIGatew
 
 	istLocation, err := time.LoadLocation("Asia/Kolkata")
 	if err != nil {
-		log.Printf("Error loading location: %v", err)
 		return utilis.ResponseBuilder(0, nil, "Internal Server Error", "Failed to parse chapter data: Unmarshal error")
 	}
 
@@ -28,21 +27,18 @@ func UpdateDailyAnalytics(request events.APIGatewayProxyRequest) events.APIGatew
 	now := time.Now().In(istLocation)
 	oneDayAgo := now.AddDate(0, 0, -1)
 
-	updatedUser, err := getTodayActiveUser(svc, oneDayAgo, istLocation)
+	updatedUser, err := _getTodayActiveUser(svc, oneDayAgo, istLocation)
 	if err != nil {
-		log.Printf("Failed to unmarshal item: %v", err)
 		return utilis.ResponseBuilder(0, nil, "Internal Server Error", "Failed to parse chapter data: Unmarshal error")
 	}
 
-	newUser, err := getTodayNewUser(svc, oneDayAgo, istLocation)
+	newUser, err := _getTodayNewUser(svc, oneDayAgo, istLocation)
 	if err != nil {
-		log.Printf("Failed to unmarshal item: %v", err)
 		return utilis.ResponseBuilder(0, nil, "Internal Server Error", "Failed to parse chapter data: Unmarshal error")
 	}
 
-	activity, err := getTodayUserActivity(svc, oneDayAgo, istLocation)
+	activity, err := _getTodayUserActivity(svc, oneDayAgo, istLocation)
 	if err != nil {
-		log.Printf("Failed to unmarshal item: %v", err)
 		return utilis.ResponseBuilder(0, nil, "Internal Server Error", err.Error())
 	}
 
@@ -76,7 +72,6 @@ func UpdateDailyAnalytics(request events.APIGatewayProxyRequest) events.APIGatew
 	// Execute the update operation
 	_, err = svc.UpdateItem(updateItemInput)
 	if err != nil {
-		log.Printf("Failed to update item: %v", err)
 		return utilis.ResponseBuilder(0, nil, "Internal Server Error", "Failed to update analytics data")
 	}
 
@@ -88,7 +83,7 @@ func UpdateDailyAnalytics(request events.APIGatewayProxyRequest) events.APIGatew
 	}, "success", "")
 }
 
-func getTodayActiveUser(svc *dynamodb.DynamoDB, now time.Time, istLocation *time.Location) ([]models.User, error) {
+func _getTodayActiveUser(svc *dynamodb.DynamoDB, now time.Time, istLocation *time.Location) ([]models.User, error) {
 
 	// Start and end of the day in YYYY-MM-DD format
 	startDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, istLocation).Format("2006-01-02T15:04:05Z07:00")
@@ -128,7 +123,7 @@ func getTodayActiveUser(svc *dynamodb.DynamoDB, now time.Time, istLocation *time
 	return users, nil
 }
 
-func getTodayNewUser(svc *dynamodb.DynamoDB, now time.Time, istLocation *time.Location) ([]models.User, error) {
+func _getTodayNewUser(svc *dynamodb.DynamoDB, now time.Time, istLocation *time.Location) ([]models.User, error) {
 
 	// Start and end of the day in YYYY-MM-DD format
 	startDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, istLocation).Format("2006-01-02T15:04:05Z07:00")
@@ -168,7 +163,7 @@ func getTodayNewUser(svc *dynamodb.DynamoDB, now time.Time, istLocation *time.Lo
 	return users, nil
 }
 
-func getTodayUserActivity(svc *dynamodb.DynamoDB, now time.Time, istLocation *time.Location) ([]models.UserActivity, error) {
+func _getTodayUserActivity(svc *dynamodb.DynamoDB, now time.Time, istLocation *time.Location) ([]models.UserActivity, error) {
 
 	// Get today's date in YYYY-MM-DD format
 	date := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, istLocation).Format("2006-01-02")

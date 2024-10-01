@@ -40,13 +40,13 @@ func GitaHandler(request events.APIGatewayProxyRequest) events.APIGatewayProxyRe
 		return api.GetVerse(request)
 	}
 
-	if strings.Contains(request.Path, "/gita/sendDailyNotification") {
-		return api.SendDailyNotification(request)
-	}
-
 	// User watch handlers
 	if strings.Contains(request.Path, "/gita/updateRead") {
 		return userengagement.UpdateUserRead(request, svc)
+	}
+
+	if strings.Contains(request.Path, "/gita/sendDailyNotification") {
+		return userengagement.SendDailyNotification(request)
 	}
 
 	if strings.Contains(request.Path, "/gita/updateUserActivity") {

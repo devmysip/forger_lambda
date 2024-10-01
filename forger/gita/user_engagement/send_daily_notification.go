@@ -1,8 +1,10 @@
-package api
+package userengagement
 
 import (
 	"fmt"
 	"forger/db"
+	"forger/gita/constants"
+	"forger/gita/crud"
 	"forger/gita/models"
 	s3services "forger/gita/s3_services"
 	"forger/gita/utilis"
@@ -17,38 +19,34 @@ import (
 
 func SendDailyNotification(request events.APIGatewayProxyRequest) events.APIGatewayProxyResponse {
 
-	istLocation, err := time.LoadLocation("Asia/Kolkata")
-	if err != nil {
-		fmt.Println("Error loading location:", err)
-		return responseBuilder(0, nil, "Failed", err.Error())
-	}
+	now := utilis.GetLocalTime()
 
-	now := time.Now().In(istLocation)
-
-	bucket := "com.gitasarathi"
+	bucket := constants.GitaSarathiBucket
 	objectKey := fmt.Sprintf("%s.json", now.Format("2006-01-02"))
 
 	users, err := s3services.DownloadFileFromS3[[]models.User](bucket, objectKey)
 	if err != nil {
-		return responseBuilder(0, users, "Failed to write users to temporary file", "")
+		return utilis.ResponseBuilder(0, users, "Failed to write users to temporary file", "")
 	}
 
-	filterUser, err := filterUser(users)
+	filterUser, err := _filterUser(users)
 	if err != nil {
-		return responseBuilder(0, users, "Failed to write users to temporary file", "")
+		return utilis.ResponseBuilder(0, users, "Failed to write users to temporary file", "")
 	}
 
-	sendDailyNotification(filterUser)
+	_sendNotificationToClients(filterUser)
 
-	return responseBuilder(1, map[string]interface{}{
+	response := map[string]interface{}{
 		"users":     users,
 		"filter":    filterUser,
 		"objectKey": objectKey,
-	}, "success", "")
+	}
+
+	return utilis.ResponseBuilder(1, response, "success", "")
 
 }
 
-func sendDailyNotification(users []models.User) {
+func _sendNotificationToClients(users []models.User) {
 	svc := dynamodb.New(db.DB())
 	notificationTemplates := utilis.GetNotificationTemplates()
 	notificationSent := 0
@@ -58,7 +56,7 @@ func sendDailyNotification(users []models.User) {
 			continue
 		}
 
-		days, err := daysBetween(user.UpdatedAt)
+		days, err := utilis.DaysSinceDate(user.UpdatedAt)
 		if err != nil {
 			log.Printf("Failed to calculate days: %v", err)
 
@@ -100,7 +98,7 @@ func sendDailyNotification(users []models.User) {
 			}
 		}
 
-		message, err = createMessage(notification.Title, notification.Body, data)
+		message, err = utilis.FCMPayloadBuilder(notification.Title, notification.Body, data)
 		if err != nil {
 			log.Printf("Failed to create message: %v", err)
 			continue
@@ -116,20 +114,13 @@ func sendDailyNotification(users []models.User) {
 
 	}
 
-	updateNotificationSent(svc, notificationSent)
-
+	crud.UpdateNotificationSentCount(svc, notificationSent)
 }
 
-func filterUser(users []models.User) ([]models.User, error) {
+func _filterUser(users []models.User) ([]models.User, error) {
 
 	var filterdUser []models.User
-	istLocation, err := time.LoadLocation("Asia/Kolkata")
-	if err != nil {
-		fmt.Println("Error loading location:", err)
-		return filterdUser, err
-	}
-
-	now := time.Now().In(istLocation)
+	now := utilis.GetLocalTime()
 
 	for _, user := range users {
 
@@ -140,11 +131,11 @@ func filterUser(users []models.User) ([]models.User, error) {
 			endMinute = 59
 		}
 
-		endDate := time.Date(now.Year(), now.Month(), now.Day()-1, now.Hour(), endMinute, 0, 0, istLocation)
-		startDate := time.Date(now.Year(), now.Month(), now.Day()-1, now.Hour(), startMinute, 0, 0, istLocation)
+		endDate := time.Date(now.Year(), now.Month(), now.Day()-1, now.Hour(), endMinute, 0, 0, now.Location())
+		startDate := time.Date(now.Year(), now.Month(), now.Day()-1, now.Hour(), startMinute, 0, 0, now.Location())
 
-		specificStartTime := startDate.In(istLocation).Format("2006-01-02T15:04:05Z07:00")
-		specificEndTime := endDate.In(istLocation).Format("2006-01-02T15:04:05Z07:00")
+		specificStartTime := startDate.In(now.Location()).Format("2006-01-02T15:04:05Z07:00")
+		specificEndTime := endDate.In(now.Location()).Format("2006-01-02T15:04:05Z07:00")
 
 		if user.UpdatedAt >= specificStartTime && user.UpdatedAt <= specificEndTime {
 			filterdUser = append(filterdUser, user)

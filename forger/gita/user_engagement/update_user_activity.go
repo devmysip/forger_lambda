@@ -5,7 +5,6 @@ import (
 	"forger/db"
 	"forger/gita/constants"
 	"forger/gita/utilis"
-	"log"
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -14,9 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
-// RequestBody structure for incoming request
-
-// UpdateUserActivity updates the user's activity for a specific date
 func UpdateUserActivity(request events.APIGatewayProxyRequest) events.APIGatewayProxyResponse {
 
 	type RequestBody struct {
@@ -27,13 +23,11 @@ func UpdateUserActivity(request events.APIGatewayProxyRequest) events.APIGateway
 
 	email, err := utilis.HeaderHandler(request.Headers)
 	if err != nil {
-		log.Printf("Error extracting email: %s", err)
 		return utilis.ResponseBuilder(0, nil, "Internal Server Error", "Failed to extract email from request")
 	}
 
 	body, err := utilis.DecodeAndUnmarshal[RequestBody](request)
 	if err != nil {
-		log.Printf("Error decoding and unmarshalling request body: %s", err)
 		return utilis.ResponseBuilder(0, request.Body, "Bad Request", err.Error())
 	}
 
@@ -73,10 +67,8 @@ func UpdateUserActivity(request events.APIGatewayProxyRequest) events.APIGateway
 	_, err = svc.UpdateItem(updateParams)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == dynamodb.ErrCodeConditionalCheckFailedException {
-			log.Printf("Activity already exists: %s", err)
 			return utilis.ResponseBuilder(1, nil, "No Operation", "Activity already exists")
 		}
-		log.Printf("Error updating item in DynamoDB: %s", err)
 		return utilis.ResponseBuilder(0, nil, "Internal Server Error", err.Error())
 	}
 
