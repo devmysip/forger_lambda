@@ -1,6 +1,7 @@
 package api
 
 import (
+	"forger/gita/constants"
 	"forger/gita/models"
 	"log"
 	"time"
@@ -32,7 +33,7 @@ func CreateUser(request events.APIGatewayProxyRequest, svc *dynamodb.DynamoDB) e
 
 	// Set up query input parameters
 	query := &dynamodb.QueryInput{
-		TableName:              aws.String("User"),
+		TableName:              aws.String(constants.UserTable),
 		KeyConditionExpression: aws.String("email = :email"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":email": {

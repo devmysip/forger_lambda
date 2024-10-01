@@ -1,8 +1,10 @@
-package api
+package userwatch
 
 import (
 	"fmt"
 	"forger/db"
+	"forger/gita/constants"
+	"forger/gita/utilis"
 	"log"
 	"time"
 
@@ -11,8 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
-
-const tableName = "UserActivity"
 
 // RequestBody structure for incoming request
 
@@ -25,16 +25,16 @@ func UpdateUserActivity(request events.APIGatewayProxyRequest) events.APIGateway
 	}
 	svc := dynamodb.New(db.DB())
 
-	email, err := headerHandler(request.Headers)
+	email, err := utilis.HeaderHandler(request.Headers)
 	if err != nil {
 		log.Printf("Error extracting email: %s", err)
-		return responseBuilder(0, nil, "Internal Server Error", "Failed to extract email from request")
+		return utilis.ResponseBuilder(0, nil, "Internal Server Error", "Failed to extract email from request")
 	}
 
-	body, err := decodeAndUnmarshal[RequestBody](request)
+	body, err := utilis.DecodeAndUnmarshal[RequestBody](request)
 	if err != nil {
 		log.Printf("Error decoding and unmarshalling request body: %s", err)
-		return responseBuilder(0, request.Body, "Bad Request", err.Error())
+		return utilis.ResponseBuilder(0, request.Body, "Bad Request", err.Error())
 	}
 
 	currentTime := time.Now()
@@ -52,7 +52,7 @@ func UpdateUserActivity(request events.APIGatewayProxyRequest) events.APIGateway
 	}
 
 	updateParams := &dynamodb.UpdateItemInput{
-		TableName: aws.String(tableName),
+		TableName: aws.String(constants.UserActivityTable),
 		Key: map[string]*dynamodb.AttributeValue{
 			"email": {S: aws.String(email)},
 			"date":  {S: aws.String(formattedDate)},
@@ -74,11 +74,11 @@ func UpdateUserActivity(request events.APIGatewayProxyRequest) events.APIGateway
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == dynamodb.ErrCodeConditionalCheckFailedException {
 			log.Printf("Activity already exists: %s", err)
-			return responseBuilder(1, nil, "No Operation", "Activity already exists")
+			return utilis.ResponseBuilder(1, nil, "No Operation", "Activity already exists")
 		}
 		log.Printf("Error updating item in DynamoDB: %s", err)
-		return responseBuilder(0, nil, "Internal Server Error", err.Error())
+		return utilis.ResponseBuilder(0, nil, "Internal Server Error", err.Error())
 	}
 
-	return responseBuilder(1, nil, "Success", "User activity updated successfully")
+	return utilis.ResponseBuilder(1, nil, "Success", "User activity updated successfully")
 }

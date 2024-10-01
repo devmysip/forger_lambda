@@ -2,6 +2,7 @@ package api
 
 import (
 	"forger/db"
+	"forger/gita/constants"
 	"forger/gita/models"
 	"log"
 	"time"
@@ -16,7 +17,7 @@ func GetUserWeekActivity(request events.APIGatewayProxyRequest) events.APIGatewa
 
 	svc := dynamodb.New(db.DB())
 
-	email, err := headerHandler(request.Headers,)
+	email, err := headerHandler(request.Headers)
 	if err != nil {
 		log.Printf("Error extracting email: %s", err)
 		return responseBuilder(0, nil, "Internal Server Error", "Failed to extract email from request")
@@ -35,7 +36,7 @@ func GetUserWeekActivity(request events.APIGatewayProxyRequest) events.APIGatewa
 
 	// Query DynamoDB for the user's activity within the date range
 	queryInput := &dynamodb.QueryInput{
-		TableName:              aws.String(tableName),
+		TableName:              aws.String(constants.UserActivityTable),
 		KeyConditionExpression: aws.String("#email = :email AND #date BETWEEN :start_date AND :end_date"),
 		ExpressionAttributeNames: map[string]*string{
 			"#email": aws.String("email"),

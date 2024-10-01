@@ -2,6 +2,7 @@ package api
 
 import (
 	"forger/db"
+	"forger/gita/constants"
 	"forger/gita/models"
 	"log"
 	"strings"
@@ -21,7 +22,7 @@ func GetVerse(request events.APIGatewayProxyRequest) events.APIGatewayProxyRespo
 
 	// Set up query input parameters
 	input := &dynamodb.QueryInput{
-		TableName:              aws.String("Verses"),
+		TableName:              aws.String(constants.VersesTable),
 		KeyConditionExpression: aws.String("ID = :verse_id"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":verse_id": {

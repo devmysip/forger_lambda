@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"forger/db"
+	"forger/gita/constants"
 	"forger/gita/utilis"
 	"log"
 
@@ -74,7 +75,7 @@ func SNSCreateClientEndpoint(request events.APIGatewayProxyRequest) events.APIGa
 				S: aws.String(utilis.GetCurrentTime()),
 			},
 		},
-		TableName:        aws.String("User"),
+		TableName:        aws.String(constants.UserTable),
 		ReturnValues:     aws.String("UPDATED_NEW"),
 		UpdateExpression: aws.String("set fcm_token = :fcm_token, client_endpoint =:client_endpoint, updated_at = :updated_at"),
 	}

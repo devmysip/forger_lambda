@@ -1,9 +1,11 @@
-package api
+package userwatch
 
 import (
 	"fmt"
 	"forger/db"
+	"forger/gita/constants"
 	"forger/gita/models"
+	"forger/gita/utilis"
 	"log"
 	"time"
 
@@ -19,7 +21,7 @@ func UpdateDailyAnalytics(request events.APIGatewayProxyRequest) events.APIGatew
 	istLocation, err := time.LoadLocation("Asia/Kolkata")
 	if err != nil {
 		log.Printf("Error loading location: %v", err)
-		return responseBuilder(0, nil, "Internal Server Error", "Failed to parse chapter data: Unmarshal error")
+		return utilis.ResponseBuilder(0, nil, "Internal Server Error", "Failed to parse chapter data: Unmarshal error")
 	}
 
 	// Get the current time in IST
@@ -29,19 +31,19 @@ func UpdateDailyAnalytics(request events.APIGatewayProxyRequest) events.APIGatew
 	updatedUser, err := getTodayActiveUser(svc, oneDayAgo, istLocation)
 	if err != nil {
 		log.Printf("Failed to unmarshal item: %v", err)
-		return responseBuilder(0, nil, "Internal Server Error", "Failed to parse chapter data: Unmarshal error")
+		return utilis.ResponseBuilder(0, nil, "Internal Server Error", "Failed to parse chapter data: Unmarshal error")
 	}
 
 	newUser, err := getTodayNewUser(svc, oneDayAgo, istLocation)
 	if err != nil {
 		log.Printf("Failed to unmarshal item: %v", err)
-		return responseBuilder(0, nil, "Internal Server Error", "Failed to parse chapter data: Unmarshal error")
+		return utilis.ResponseBuilder(0, nil, "Internal Server Error", "Failed to parse chapter data: Unmarshal error")
 	}
 
 	activity, err := getTodayUserActivity(svc, oneDayAgo, istLocation)
 	if err != nil {
 		log.Printf("Failed to unmarshal item: %v", err)
-		return responseBuilder(0, nil, "Internal Server Error", err.Error())
+		return utilis.ResponseBuilder(0, nil, "Internal Server Error", err.Error())
 	}
 
 	// Prepare data for DynamoDB PutItem
@@ -75,10 +77,10 @@ func UpdateDailyAnalytics(request events.APIGatewayProxyRequest) events.APIGatew
 	_, err = svc.UpdateItem(updateItemInput)
 	if err != nil {
 		log.Printf("Failed to update item: %v", err)
-		return responseBuilder(0, nil, "Internal Server Error", "Failed to update analytics data")
+		return utilis.ResponseBuilder(0, nil, "Internal Server Error", "Failed to update analytics data")
 	}
 
-	return responseBuilder(1, map[string]interface{}{
+	return utilis.ResponseBuilder(1, map[string]interface{}{
 		"active_users":  len(updatedUser),
 		"new_users":     len(newUser),
 		"user_activity": len(activity),
@@ -94,7 +96,7 @@ func getTodayActiveUser(svc *dynamodb.DynamoDB, now time.Time, istLocation *time
 
 	// Define the DynamoDB Scan input
 	input := &dynamodb.ScanInput{
-		TableName:        aws.String("User"),
+		TableName:        aws.String(constants.UserTable),
 		FilterExpression: aws.String("updated_at BETWEEN :start_date AND :end_date"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":start_date": {

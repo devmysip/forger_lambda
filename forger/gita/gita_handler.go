@@ -4,6 +4,7 @@ import (
 	"forger/db"
 	"forger/gita/api"
 	snsservice "forger/gita/sns_service"
+	userwatch "forger/gita/user_watch"
 	"net/http"
 	"strings"
 
@@ -24,7 +25,7 @@ func GitaHandler(request events.APIGatewayProxyRequest) events.APIGatewayProxyRe
 	}
 
 	if strings.Contains(request.Path, "/gita/updateRead") {
-		return api.UpdateUserRead(request, svc)
+		return userwatch.UpdateUserRead(request, svc)
 	}
 
 	if strings.Contains(request.Path, "/gita/updateFCM") {
@@ -32,7 +33,7 @@ func GitaHandler(request events.APIGatewayProxyRequest) events.APIGatewayProxyRe
 	}
 
 	if strings.Contains(request.Path, "/gita/updateUserActivity") {
-		return api.UpdateUserActivity(request)
+		return userwatch.UpdateUserActivity(request)
 	}
 
 	if strings.Contains(request.Path, "/gita/getUserWeekActivity") {
@@ -64,11 +65,11 @@ func GitaHandler(request events.APIGatewayProxyRequest) events.APIGatewayProxyRe
 	}
 
 	if strings.Contains(request.Path, "/gita/updateNotificationReadCounter") {
-		return api.UpdateNotificationReadCounter(request)
+		return userwatch.UpdateNotificationReadCounter(request)
 	}
 
 	if strings.Contains(request.Path, "/gita/updateDailyAnalytics") {
-		return api.UpdateDailyAnalytics(request)
+		return userwatch.UpdateDailyAnalytics(request)
 	}
 
 	if strings.Contains(request.Path, "/gita/getActiveUserInDays") {

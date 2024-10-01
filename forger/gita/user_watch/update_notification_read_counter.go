@@ -1,8 +1,10 @@
-package api
+package userwatch
 
 import (
 	"fmt"
 	"forger/db"
+	"forger/gita/constants"
+	"forger/gita/utilis"
 	"log"
 	"time"
 
@@ -12,10 +14,10 @@ import (
 )
 
 func UpdateNotificationReadCounter(request events.APIGatewayProxyRequest) events.APIGatewayProxyResponse {
-	email, err := headerHandler(request.Headers)
+	email, err := utilis.HeaderHandler(request.Headers)
 	if err != nil {
 		log.Printf("Error extracting email: %s", err)
-		return responseBuilder(0, nil, "Internal Server Error", "Failed to extract email from request")
+		return utilis.ResponseBuilder(0, nil, "Internal Server Error", "Failed to extract email from request")
 	}
 
 	attributeName := "notification_clicked"
@@ -39,14 +41,14 @@ func UpdateNotificationReadCounter(request events.APIGatewayProxyRequest) events
 			},
 		},
 		ReturnValues:     aws.String("UPDATED_NEW"),
-		TableName:        aws.String("User"),
+		TableName:        aws.String(constants.UserTable),
 		UpdateExpression: aws.String(updateExpression),
 	}
 
 	_, err = svc.UpdateItem(input)
 	if err != nil {
 		log.Printf("Error updating notification counter: %s", err)
-		return responseBuilder(0, nil, "Internal Server Error", "Failed to update notification counter")
+		return utilis.ResponseBuilder(0, nil, "Internal Server Error", "Failed to update notification counter")
 	}
 
 	date := time.Now().Format("2006-01-02")
@@ -66,17 +68,16 @@ func UpdateNotificationReadCounter(request events.APIGatewayProxyRequest) events
 				N: aws.String("0"),
 			},
 		},
-		ReturnValues: aws.String("UPDATED_NEW"),
-		TableName: aws.String("Analytics"),
+		ReturnValues:     aws.String("UPDATED_NEW"),
+		TableName:        aws.String("Analytics"),
 		UpdateExpression: aws.String(updateExpression),
-
 	}
 
 	_, err = svc.UpdateItem(inputAnalytics)
 	if err != nil {
 		log.Printf("Error updating notification counter: %s", err)
-		return responseBuilder(0, nil, "Internal Server Error", "Failed to update notification counter")
+		return utilis.ResponseBuilder(0, nil, "Internal Server Error", "Failed to update notification counter")
 	}
 
-	return responseBuilder(1, nil, "Success", "Notification counter updated successfully")
+	return utilis.ResponseBuilder(1, nil, "Success", "Notification counter updated successfully")
 }

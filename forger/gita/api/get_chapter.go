@@ -2,6 +2,7 @@ package api
 
 import (
 	"forger/db"
+	"forger/gita/constants"
 	"forger/gita/models"
 	"log"
 	"strings"
@@ -21,7 +22,7 @@ func GetChapter(request events.APIGatewayProxyRequest) events.APIGatewayProxyRes
 
 	// Set up scan input parameters
 	input := &dynamodb.ScanInput{
-		TableName:        aws.String("ChaptersTable"),
+		TableName:        aws.String(constants.ChapterTable),
 		FilterExpression: aws.String("chapter_number = :chapter_number"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":chapter_number": {
