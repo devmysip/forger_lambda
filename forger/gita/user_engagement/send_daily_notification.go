@@ -36,13 +36,7 @@ func SendDailyNotification(request events.APIGatewayProxyRequest) events.APIGate
 
 	_sendNotificationToClients(filterUser)
 
-	response := map[string]interface{}{
-		"users":     users,
-		"filter":    filterUser,
-		"objectKey": objectKey,
-	}
-
-	return utilis.ResponseBuilder(1, response, "success", "")
+	return utilis.ResponseBuilder(1, nil, "success", "")
 
 }
 
@@ -134,10 +128,22 @@ func _filterUser(users []models.User) ([]models.User, error) {
 		endDate := time.Date(now.Year(), now.Month(), now.Day()-1, now.Hour(), endMinute, 0, 0, now.Location())
 		startDate := time.Date(now.Year(), now.Month(), now.Day()-1, now.Hour(), startMinute, 0, 0, now.Location())
 
-		specificStartTime := startDate.In(now.Location()).Format("2006-01-02T15:04:05Z07:00")
-		specificEndTime := endDate.In(now.Location()).Format("2006-01-02T15:04:05Z07:00")
+		// specificStartTime := startDate.In(now.Location()).Format("2006-01-02T15:04:05Z07:00")
+		// specificEndTime := endDate.In(now.Location()).Format("2006-01-02T15:04:05Z07:00")
 
-		if user.UpdatedAt >= specificStartTime && user.UpdatedAt <= specificEndTime {
+		layout := "2006-01-02T15:04:05Z07:00"
+
+		userUpdatedAt, err := time.Parse(layout, user.UpdatedAt)
+		if err != nil {
+			log.Printf("Error parsing UpdatedAt: %v", err)
+			continue
+		}
+
+		userUpdatedTime := userUpdatedAt.Format("15:04:05")
+		startTime := startDate.Format("15:04:05")
+		endTime := endDate.Format("15:04:05")
+
+		if userUpdatedTime >= startTime && userUpdatedTime <= endTime {
 			filterdUser = append(filterdUser, user)
 		}
 
